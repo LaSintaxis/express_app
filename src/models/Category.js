@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const categoryShema = new mongoose.Schema({
+const categorySchema = new mongoose.Schema({
     name:{
         type: String,
         required: [true, 'El nombre de categoria es requerido'],
@@ -12,7 +12,7 @@ const categoryShema = new mongoose.Schema({
     description: {
         type: String,
         trim: true,
-        maxlength: [500, 'La descripcion no puede exceder loss 500 caracteres']
+        maxlength: [500, 'La descripcion no puede exceder los 500 caracteres']
     },
     slug: {
         type: String,
@@ -51,7 +51,7 @@ const categoryShema = new mongoose.Schema({
     timestamps: true
 })
 
-categoryShema.pre('save', function (next){
+categorySchema.pre('save', function (next){
     if (this.isModified('name')) {
         this.slug = this.name
         .toLowerCase()
@@ -61,7 +61,7 @@ categoryShema.pre('save', function (next){
     next();
 })
 
-categoryShema.pre('findOneAndUpdate', function(next){
+categorySchema.pre('findOneAndUpdate', function(next){
     const update = this.getUpdate();
 
     if(update.name){
@@ -71,3 +71,30 @@ categoryShema.pre('findOneAndUpdate', function(next){
     }
     next();
 })
+
+categorySchema.virtual('productCount', {
+    ref:'Product',
+    localField: '_id',
+    foreignField: 'category',
+    count:true
+})
+
+categorySchema.static.findActive = function (){
+    return this.find({ isActive:true }).sort({ sortOrder: 1, name: 1 })
+}
+
+categorySchema.methods.canBeDeleted = async function () {
+    const Subcategory = mongoose.model('Subcategory');
+    const Product = mongoose.model('Product');
+
+    const SubcategoriesCount = await Subcategory.countDocuments({ category: this._id });
+    const productsCount = await Product.countDocuments({ category: this._id });
+
+    return SubcategoriesCount === 0 && productsCount === 0;
+}
+
+categorySchema.index({isActive:1})
+categorySchema.index({sortOrder:1})
+categorySchema.index({createdBy:1})
+
+module.exports = mongoose.model('category', categorySchema)
