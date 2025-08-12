@@ -180,29 +180,136 @@ const productSchema = new mongoose.Schema({
             ref: 'User'
         }
 
-    }, {
-        timestamps: true
     }
+}, {
+    timestamps: true
 })
 
-productSchema.pre('save', function(next){
-    if(this.isModified('name')){
+productSchema.pre('save', function (next) {
+    if (this.isModified('name')) {
         this.slug = this.name
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/(^-|-$)/g, '')
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/(^-|-$)/g, '')
     }
     next();
 })
 
-productSchema.pre('findOneAndUpdate', function(next){
+productSchema.pre('findOneAndUpdate', function (next) {
     const update = this.getUpdate();
 
-    if(update.name){
+    if (update.name) {
         update.slug = update.name
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/(^-|-$)+/g, '');
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/(^-|-$)+/g, '');
     }
     next();
 })
+
+productSchema.pre('save', async function (next) {
+    if (this.isModified('category') || this.isModified('subcategory')) {
+        const Subcategory = mongoose.model('Subcategory');
+        const subcategory = await Subcategory.findById(this.subcategory);
+
+        if (!subcategory) {
+            return next(new Error('La subcategoria especificada no existe'))
+        }
+
+        if (subcategory.category.toString() !== this.category.toString()) {
+            return next(new Error('La subcategoria no pertenece a la categoria especificada'))
+        }
+    }
+    next();
+})
+
+productSchema.virtual('profitMagin').get(function () {
+    if (this.price && this.cost) {
+        return ((this.price - this.cost) / this.price) * 100;
+    }
+    return 0
+});
+
+productSchema.virtual('isOutOfStock').get(function () {
+    if (!this.stock.trackStock) return false;
+    return this.stock.quantity <= 0;
+});
+
+productSchema.virtual('primaryImage').get(function () {
+    return this.images.find(img => img.isPrimary) || this.image[0];
+})
+
+productSchema.statics.findActive = function () {
+    return this.find({ isActive: true })
+        .populate('category', 'name slug')
+        .populate('subcategory', 'name slug')
+        .sort({ sortOrder: 1, name: 1 })
+}
+
+productSchema.statics.findByCategory = function (categoryId) {
+    return this.find({
+        category: categoryId,
+        isActive: true
+    })
+        .populate('category', 'name slug')
+        .populate('subcategory', 'name slug')
+        .sort({ sortOrder: 1, name: 1 })
+}
+
+productSchema.statics.findBySubcategory = function (subcategoryId) {
+    return this.find({
+        subcategory: subcategoryId,
+        isActive: true
+    })
+        .populate('category', 'name slug')
+        .populate('subcategory', 'name slug')
+        .sort({ sortOrder: 1, name: 1 })
+}
+
+productSchema.statics.findFeature = function () {
+    return this.find({
+        isFeactured: true,
+        isActive: true
+    })
+        .populate('category', 'name slug')
+        .populate('subcategory', 'name slug')
+        .sort({ sortOrder: 1, name: 1 })
+}
+
+productSchema.methods.getFullPath = async function () {
+    await this.populate([
+        { path: 'category', select: 'name' },
+        { path: 'subcategory', select: 'name' }
+    ]);
+
+    return `${this.category.name} > ${this.subcategory.name} > ${this.name}`
+}
+
+productSchema.methods.updateStock = function (quantity) {
+    if (this.stock.trackStock) {
+        this.stock.quantity += quantity;
+        if (this.stock.quantity < 0) {
+            this.stock.quantity = 0
+        }
+    }
+    return this.save()
+};
+
+productSchema.index({ category:1 })
+productSchema.index({ subcategory:1 })
+productSchema.index({ isActive:1 })
+productSchema.index({ isFeactured:1 })
+productSchema.index({ price:1 })
+productSchema.index({ 'stock.quantity':1 })
+productSchema.index({ sortOrder:1 })
+productSchema.index({ createdBy:1 })
+productSchema.index({ tags:1 })
+
+productSchema.index({
+    name: 'text',
+    description: 'text',
+    shortDescription: 'text',
+    tags: 'text'
+})
+
+module.exports = mongoose.model('Product', productSchema)
