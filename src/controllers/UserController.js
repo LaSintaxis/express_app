@@ -223,4 +223,60 @@ const toggleUserStatus = asyncHandler(async (req, res) => {
             message: 'no puedes cambiar tu propio estado'
         })
     }
+    user.isActive = !user.isActive;
+    user.updateUser = req.user._id;
+    await user.save();
+
+    res.status(200).json({
+        success: true,
+        message: `Usuario ${user.isActive ? 'activado' : 'desactivado'} exitosamente`,
+        data: user
+    })
 })
+//obtener las estadisticas de los usuarios
+const getUserStats = asyncHandler(async (req, res) => {
+    const stats = await User.aggregate([
+        {
+            $group: {
+                _id: null,
+                totalUsers: { $sum: 1 },
+                activateUsers: {
+                    $sum: { $cond:[{ $eq: ['$isActive', true] }, 1, 0]}
+                },
+                adminUsers: {
+                    $sum: { $cond: [{ $eq: ['$role', 'admin'] }, 1, 0]}
+                },
+                coordinadorUsers: {
+                    $sum: { $cond: [{ $eq: ['$role', 'coordinador'] }, 1, 0]}
+                }
+            }
+        }
+    ]);
+    const recentUsers = await User.find()
+    .sort({ createdAt: -1 })
+    .limit(5)
+    .select('username firstName lastName email role createdAt');
+
+    res.status(200).json({
+        success: true,
+        data: {
+            status: stats[0] || {
+                totalUsers: 0,
+                activateUsers: 0,
+                adminUsers: 0,
+                coordinadorUsers: 0
+            },
+            recentUsers
+        }
+    })
+})
+
+module.exports = {
+    getUsers,
+    getUserById,
+    createUser,
+    updateUser,
+    deleteUser,
+    toggleUserStatus,
+    getUserStats
+}
