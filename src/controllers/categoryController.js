@@ -1,5 +1,5 @@
 const { Category, Subcategory, Product } = require('../models');
-const { asyncHandler } = require('../middlewares/asyncHandler');
+const { asyncHandler } = require('../middlewares/errorHandler');
 
 //Obtener todas las categorias
 const getCategories = asyncHandler(async (req, res) => {

@@ -1,5 +1,5 @@
 const { Subcategory, Category, Product } = require('../models');
-const { asyncHandler } = require('../middlewares/asyncHandler');
+const { asyncHandler } = require('../middlewares/errorHandler');
 
 //Obtener todas las subcategorias
 const getSubcategories = asyncHandler(async (req, res) => {
@@ -56,6 +56,14 @@ const getSubcategoriesByCategory = asyncHandler(async (req, res) => {
         })
     }
     const subcategories = await Subcategory.findByIdCategory(categoryId);
+    res.status(200).json({
+        success: true,
+        data: subcategories
+    })
+})
+
+const getActiveSubcategory = asyncHandler( async (req, res) => {
+    const subcategories = await Subcategory.findActive();
     res.status(200).json({
         success: true,
         data: subcategories
@@ -123,8 +131,8 @@ const createSubcategory = asyncHandler(async (req, res) => {
             message: 'La categoria especificada no está activa'
         })
     }
-    //verificar si la subcategoria ya existe en esa caategoria
-    const existingSubcategory = await Subategory.findOne({
+    //verificar si la subcategoria ya existe en esa categoria
+    const existingSubcategory = await Subcategory.findOne({
         name: { $regex: new RegExp(`^${name}$`, 'i') },
         category: targetCategoryId
     })
@@ -175,11 +183,23 @@ const updateSubcategory = asyncHandler(async (req, res) => {
     const targetCategoryId = categoryId || category
     //si cambia la categoria validar que exista y este activa
     if (targetCategoryId && targetCategoryId !== subcategory.category.toString()) {
-        const parentCategory = await Category.findById
+        const parentCategory = await Category.findById(targetCategoryId)
+        if (!parentCategory) {
+            return res.status(400).json({
+                success:false,
+                message: 'la categoria especificada no existe'
+            })
+        }
+        if (!parentCategory.isActive) {
+            return res.status(400).json({
+                success: false,
+                message: 'la categoriaespecificada no esta activa'
+            })
+        }
     }
 
     //verificar duplicados
-    if (name && name !== category.name) {
+    if ((name && name !== subcategory.name) || (targetCategoryId && targetCategoryId !== subcategory.category.toString())) {
         const existingCategory = await Category.findOne({
             name: { $regex: new RegExp(`^${name}$`, 'i') }
         })
@@ -191,17 +211,156 @@ const updateSubcategory = asyncHandler(async (req, res) => {
         }
     }
     //Actualizar la categoria
-    if (name) category.name = name;
-    if (description !== undefined) category.description = description;
-    if (icon !== undefined) category.icon = icon;
-    if (color !== undefined) category.color = color;
-    if (sortOrder !== undefined) category.sortOrder = sortOrder;
-    if (isActive !== undefined) category.isActive = isActive;
-    category.updatedBy = req.user._id;
-    await category.save();
+    if (name) subcategory.name = name;
+    if (description !== undefined) subcategory.description = description;
+    if (icon !== undefined) subcategory.icon = icon;
+    if (color !== undefined) subcategory.color = color;
+    if (sortOrder !== undefined) subcategory.sortOrder = sortOrder;
+    if (isActive !== undefined) subcategory.isActive = isActive;
+    subcategory.updatedBy = req.user._id;
+    await subcategory.save();
     res.status(200).json({
         success: true,
         message: 'categoria actualizada correctamente',
-        data: category
+        data: subcategory
     })
 })
+
+//eliminar una categoria
+const deleteSubcategory = asyncHandler(async (req, res) => {
+    const subcategory = await Subcategory.findById(req.params.id);
+    if (!subcategory) {
+        return res.status(404).json({
+            success: false,
+            message: 'Subcategoria no encontrada'
+        })
+    }
+    //verificar si se puede eliminar
+    const canDelete = await subcategory.canDelete();
+    if (!canDelete) {
+        return res.status(400).json({
+            success: false,
+            message: 'No se puede eliminar la subcategoria porque tiene productos asociados'
+        })
+    }
+    await Subcategory.findByIdAndDelete(req.params.id);
+    res.status(200).json({
+        success: true,
+        message: 'Subcategoria eliminada correctamente'
+    })
+})
+//activar o desactivar categoria
+const toggleSubcategoryStatus = asyncHandler(async (req, res) => {
+    const subcategory = await Subcategory.findById(req.params.id);
+    if (!subcategory) {
+        return res.status(404).json({
+            success: false,
+            message: 'Subcategoria no encontrada'
+        })
+    }
+    subcategory.isActive = !subcategory.isActive;
+    subcategory.updatedBy = req.user._id;
+    await subcategory.save();
+    //si la subcategoria se desactiva, desactivar productos asociados
+    if (!subcategory.isActive) {
+        await Subcategory.updateMany(
+            { subcategory: subcategory._id },
+            { isActive: false, updatedBy: req.user._id }
+        );
+    }
+    res.status(200).json({
+        success: true,
+        message: `subcategoria ${subcategory.isActive ? 'activada' : 'desactivada'} exitosamente`,
+        data: subcategory
+    })
+})
+//ordenar subcategorias
+const reorderSubcategories = asyncHandler(async (req, res) => {
+    const { subcategoryIds } = req.body;
+    if (!Array.isArray(subcategoryIds)) {
+        return res.status(400).json({
+            success: false,
+            message: 'Se requiere un array de IDs de subcategorias'
+        })
+    }
+    //actualizar  el orden de las subcategorias
+    const updatePromises = subcategoryIds.map((subcategoryId, index) =>
+        Subcategory.findByIdAndUpdate(
+            subcategoryId,
+            {
+                sortOrder: index + 1,
+                updatedBy: req.user._id
+            },
+            { new: true }
+        )
+    )
+    await Promise.all(updatePromises);
+    res.status(200).json({
+        success: true,
+        message: 'Orden de subcategorias actualizado correctamente'
+    })
+})
+//obtener estadisticas de subcategorias
+const getSubcategoryStats = asyncHandler(async (req, res) => {
+    const stats = await Subcategory.aggregate([
+        {
+            $group: {
+                _id: null,
+                totalSubcategories: { $sum: 1 },
+                activateSubcategories: {
+                    $sum: { $cond: [{ $eq: ['$isActive', true] }, 1, 0] }
+                },
+            }
+        }
+    ])
+    const subcategoriesWithSubcounts = await Subcategory.aggregate([
+        {
+            $lookup: {
+                from: '$products',
+                localField: '_id',
+                foreignField: 'subcategory',
+                as: 'products'
+            }
+        },
+        {
+            $lookup: {
+                from: '$categories',
+                localField: '_id',
+                foreignField: 'category',
+                as: 'categoryInfo'
+            }
+        },
+        {
+            $project: {
+                name: 1,
+                categoryName: { $arrayElemAt: ['$categoryInfo.name', 0]},
+                productsCount: {$size: '$products'}
+            }
+        },
+        {sort: {productsCount: -1}},
+        {limit: 5}
+    ])
+    res.status(200).json({
+        success: true,
+        data: {
+            stats: stats[0] || {
+                totalSubcategories: 0,
+                activateSubcategories: 0
+            },
+            topSubategories: subcategoriesWithSubcounts
+        }
+    })
+})
+
+module.exports = {
+    getSubcategories,
+    getSubcategoriesByCategory,
+    getActiveSubcategory,
+    getSubcategoryById,
+    createSubcategory,
+    updateSubcategory,
+    deleteSubcategory,
+    toggleSubcategoryStatus,
+    reorderSubcategories,
+    getSubcategoryStats
+}
