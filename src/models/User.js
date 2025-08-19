@@ -106,8 +106,12 @@ userSchema.methods.toJSON = function() {
     return userObject;
 }
 
+userSchema.virtual('fullName').get( function() {
+    return `${this.firstName} ${this.lastName}`;
+})
+
 //Campo virtual para nombre no se guarda en la base de datos
 userSchema.index({role:1});
 userSchema.index({isActive:1})
 
-module.exports = mongoose.model('user', userSchema)
+module.exports = mongoose.model('User', userSchema)

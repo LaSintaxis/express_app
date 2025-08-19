@@ -315,153 +315,177 @@ const updateProduct = asyncHandler(async (req, res) => {
     if (isFeactured !== undefined) product.isFeactured = isFeactured;
     if (isDigital !== undefined) product.isDigital = isDigital;
     if (sortOrder !== undefined) product.sortOrder = sortOrder;
-    if ( seoDescription !== undefined) product.seoDescription  = seoDescription ;
-    if (sortOrder !== undefined) product.sortOrder = sortOrder;
-    if (isActive !== undefined) product.isActive = isActive;
+    if (seoDescription !== undefined) product.seoDescription = seoDescription;
+
     product.updatedBy = req.user._id;
     await product.save();
+    await product.populate([
+        { path: 'category', select: 'name slug' },
+        { path: 'subcategory', select: 'name slug' },
+    ])
     res.status(200).json({
         success: true,
-        message: 'categoria actualizada correctamente',
+        message: 'producto actualizado correctamente',
         data: product
     })
 })
 
-//eliminar una categoria
-const deleteSubcategory = asyncHandler(async (req, res) => {
-    const subcategory = await Subcategory.findById(req.params.id);
-    if (!subcategory) {
+//eliminar un producto
+const deleteProduct = asyncHandler(async (req, res) => {
+    const product = await Product.findById(req.params.id);
+    if (!product) {
         return res.status(404).json({
             success: false,
-            message: 'Subcategoria no encontrada'
+            message: 'Producto no encontrado'
         })
     }
-    //verificar si se puede eliminar
-    const canDelete = await subcategory.canDelete();
-    if (!canDelete) {
-        return res.status(400).json({
-            success: false,
-            message: 'No se puede eliminar la subcategoria porque tiene productos asociados'
-        })
-    }
-    await Subcategory.findByIdAndDelete(req.params.id);
+    await Product.findOneAndDelete(req.params);
     res.status(200).json({
         success: true,
-        message: 'Subcategoria eliminada correctamente'
+        message: 'Producto eliminado correctamente'
     })
 })
-//activar o desactivar categoria
-const toggleSubcategoryStatus = asyncHandler(async (req, res) => {
-    const subcategory = await Subcategory.findById(req.params.id);
-    if (!subcategory) {
+//activar o desactivar producto
+const toggleProductStatus = asyncHandler(async (req, res) => {
+    const product = await Product.findById(req.params.id);
+    if (!product) {
         return res.status(404).json({
             success: false,
-            message: 'Subcategoria no encontrada'
+            message: 'Producto no encontrado'
         })
     }
-    subcategory.isActive = !subcategory.isActive;
-    subcategory.updatedBy = req.user._id;
-    await subcategory.save();
-    //si la subcategoria se desactiva, desactivar productos asociados
-    if (!subcategory.isActive) {
-        await Subcategory.updateMany(
-            { subcategory: subcategory._id },
-            { isActive: false, updatedBy: req.user._id }
-        );
-    }
+    product.isActive = !product.isActive;
+    product.updatedBy = req.user._id;
+    await product.save();
+
     res.status(200).json({
         success: true,
-        message: `subcategoria ${subcategory.isActive ? 'activada' : 'desactivada'} exitosamente`,
-        data: subcategory
+        message: `Producto ${product.isActive ? 'activado' : 'desactivado'} exitosamente`,
+        data: product
     })
 })
-//ordenar subcategorias
-const reorderSubcategories = asyncHandler(async (req, res) => {
-    const { subcategoryIds } = req.body;
-    if (!Array.isArray(subcategoryIds)) {
+
+//actualizar stock del producto
+const updateProductStock = asyncHandler(async (req, res) => {
+    const { quantity, operation = 'set' } = req.body;
+    if (quantity === undefined) {
         return res.status(400).json({
             success: false,
-            message: 'Se requiere un array de IDs de subcategorias'
+            message: 'la cantidad es requerida'
         })
     }
-    //actualizar  el orden de las subcategorias
-    const updatePromises = subcategoryIds.map((subcategoryId, index) =>
-        Subcategory.findByIdAndUpdate(
-            subcategoryId,
-            {
-                sortOrder: index + 1,
-                updatedBy: req.user._id
-            },
-            { new: true }
-        )
-    )
-    await Promise.all(updatePromises);
+
+    const product = await Product.findById(req.params.id);
+    if (!product) {
+        return res.status(400).json({
+            success: false,
+            message: 'Producto no encontrado'
+        })
+    }
+
+    if (!product.stock.trackStock) {
+        return res.status(400).json({
+            success: false,
+            message: 'Este producto no maneja un control de stock'
+        })
+    }
+
+    //operaciones set add subtract
+    switch (operation) {
+        case 'set':
+            product.stock.quantity = quantity;
+            break;
+        case 'add':
+            product.stock.quantity = quantity;
+            break;
+        case 'subtract':
+            product.stock.quantity = Math.max(0, product.stock.quantity - quantity);
+            break;
+        default:
+            return res.status(400).json({
+                success: false,
+                message: 'operacion invalida Use: set, add, subtract'
+            })
+    }
+    product.updatedBy = req.user._id;
+    await product.save();
     res.status(200).json({
         success: true,
-        message: 'Orden de subcategorias actualizado correctamente'
+        message: 'stock actualizado exitosamente',
+        data: {
+            sku: product.sku,
+            name: product.name,
+            previousStock: product.stock.quantity,
+            newStock: product.stock.quantity,
+            isLowStock: product.isLowStock,
+            isOutOfStock: product.isOutOfStock
+        }
     })
 })
-//obtener estadisticas de subcategorias
-const getSubcategoryStats = asyncHandler(async (req, res) => {
-    const stats = await Subcategory.aggregate([
+
+//obtener estadisticas de productos
+const getProductStats = asyncHandler(async (req, res) => {
+    const stats = await Product.aggregate([
         {
             $group: {
                 _id: null,
-                totalSubcategories: { $sum: 1 },
-                activateSubcategories: {
+                totalProducts: { $sum: 1 },
+                activateProducts: {
                     $sum: { $cond: [{ $eq: ['$isActive', true] }, 1, 0] }
                 },
+                feacturedProducts: {
+                    $sum: { $cond: [{ $eq: ['$isActive', true] }, 1, 0] }
+                },
+                digitalProducts: {
+                    $sum: { $cond: [{ $eq: ['$isActive', true] }, 1, 0] }
+                },
+                totalValue: { $sum: '$price'},
+                averagePrice: { $avg: '$price'}
             }
         }
     ])
-    const subcategoriesWithSubcounts = await Subcategory.aggregate([
-        {
-            $lookup: {
-                from: '$products',
-                localField: '_id',
-                foreignField: 'subcategory',
-                as: 'products'
-            }
-        },
-        {
-            $lookup: {
-                from: '$categories',
-                localField: '_id',
-                foreignField: 'category',
-                as: 'categoryInfo'
-            }
-        },
-        {
-            $project: {
-                name: 1,
-                categoryName: { $arrayElemAt: ['$categoryInfo.name', 0] },
-                productsCount: { $size: '$products' }
-            }
-        },
-        { sort: { productsCount: -1 } },
-        { limit: 5 }
-    ])
+    //productos con stock bajo
+    const lowStockProducts = await Product.find({
+        'stock.trackStock': true,
+        $expr: { $lte: ['stock.quantity', 'stock.minStock']}
+    })
+    .select('name sku stock.quantity stock.minStock')
+    .limit(10);
+
+    const expensiveProducts = await Product.find({ isActive: true })
+    .sort({ price: -1})
+    .limit(5)
+    .select('name sku price')
+
     res.status(200).json({
         success: true,
         data: {
             stats: stats[0] || {
-                totalSubcategories: 0,
-                activateSubcategories: 0
+                totalProducts: 0,
+                activateProducts: 0,
+                feacturedProducts: 0,
+                digitalProducts: 0,
+                totalValue: 0,
+                averagePrice: 0,
             },
-            topSubategories: subcategoriesWithSubcounts
+            lowStockProducts,
+            expensiveProducts
         }
     })
 })
 
 module.exports = {
-    getSubcategories,
-    getSubcategoriesByCategory,
-    getActiveSubcategory,
-    getSubcategoryById,
-    createSubcategory,
-    updateSubcategory,
-    deleteSubcategory,
-    toggleSubcategoryStatus,
-    reorderSubcategories,
-    getSubcategoryStats
+    getProducts,
+    getActiveProducts,
+    getProductsByCategory,
+    getProductsBySubcategory,
+    getFeacturedProducts,
+    getProductById,
+    getProductBySku,
+    createProduct,
+    updateProduct,
+    deleteProduct,
+    toggleProductStatus,
+    updateProductStock,
+    getProductStats
 }

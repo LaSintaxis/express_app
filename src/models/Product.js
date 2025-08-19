@@ -112,7 +112,7 @@ const productSchema = new mongoose.Schema({
     dimensions: {
         weigth: {
             type: Number,
-            min: [0, 'La']
+            min: [0, 'El peso no pude ser negativo']
         },
         height: {
             type: Number,
