@@ -62,7 +62,7 @@ const getSubcategoriesByCategory = asyncHandler(async (req, res) => {
     })
 })
 
-const getActiveSubcategory = asyncHandler( async (req, res) => {
+const getActiveSubcategories = asyncHandler( async (req, res) => {
     const subcategories = await Subcategory.findActive();
     res.status(200).json({
         success: true,
@@ -355,7 +355,7 @@ const getSubcategoryStats = asyncHandler(async (req, res) => {
 module.exports = {
     getSubcategories,
     getSubcategoriesByCategory,
-    getActiveSubcategory,
+    getActiveSubcategories,
     getSubcategoryById,
     createSubcategory,
     updateSubcategory,

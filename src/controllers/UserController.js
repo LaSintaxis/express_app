@@ -1,6 +1,5 @@
 const { User } = require('../models/User')
 const { asyncHandler } = require('../middlewares/errorHandler');
-const { resolve } = require('url');
 
 //obtener los usuarios
 const getUsers = asyncHandler(async (req, res) => {
