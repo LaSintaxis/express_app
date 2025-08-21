@@ -2,7 +2,7 @@ const mongoose = require('mongoose')
 
 const productSchema = new mongoose.Schema({
     name: {
-        trype: String,
+        type: String,
         required: [true, 'El nombre del producto es requerido'],
         trim: true,
         minlength: [2, 'El nombre debe tener al menos 2 caracteres'],

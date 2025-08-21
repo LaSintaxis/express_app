@@ -31,7 +31,7 @@ const categorySchema = new mongoose.Schema({
     color:{
         type: String,
         trim: true,
-        match: [/^#(A-FA-F0-9{6}|[A-Fa-F0-9]{3})$/, 'El color debe ser en codigo Hexadecimal valido']
+        match: [/^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})$/, 'El color debe ser en codigo Hexadecimal valido']
     },
     sortOrder:{
         type: Number,

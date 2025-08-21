@@ -15,7 +15,7 @@ const login = asyncHandler(async (req, res) => {
         console.log('Error: faltan credenciales')
         return res.status(400).json({
             success: false,
-            message: 'Usernamey contraseña son requeridos'
+            message: 'Username y contraseña son requeridos'
         })
     }
     //busqueda de usuario en la base de datos
