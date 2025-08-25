@@ -1,9 +1,9 @@
 # Proyecto Express App
-Para crearlo desde cero fue
-npm init -y
-npm install express mongoose dotenv cors jsonwebtoken bcryptjs body-parser
-npm install --save-dev nodemon
-Crear archivo .env en la raiz con:
+##Para crearlo desde cero fue
+- npm init -y
+- npm install express mongoose dotenv cors jsonwebtoken bcryptjs body-parser
+- npm install --save-dev nodemon
+- Crear archivo .env en la raiz con:
 PORT=5000
 NODE_ENV=development
 HOST=0.0.0.0
