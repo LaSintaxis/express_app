@@ -23,35 +23,38 @@ const {
 
 //Middleware de autenticacion
 const { validateObjectId } = require('../middlewares/errorHandler')
-
-router.get('/active', getActiveSubcategories)
-
-//categorias activas para frontend publico
-router.get('/category/:categoryId', validateObjectId('categoryId'), getSubcategoriesByCategory)
-
 //aplicar verificacion de token en todas las rutas
 router.use(verifyToken)
 
-//estadisticas de las categorias
-router.get('/stats', verifyAdmin, getSubcategoryStats)
+router.get('/active', getActiveSubcategories) 
+
+//estadisticas de las subcategorias
+router.get('/stats', verifyAdmin, getSubcategoryStats) 
 
 //reordenar subcategorias
-router.get('/reorder', verifyAdminOrCoordinador, reorderSubcategories)
+router.put('/reorder', verifyAdminOrCoordinador, reorderSubcategories) 
+
+
+//obtener subcategorias por categoria
+router.get('/category/:categoryId', validateObjectId('categoryId'), getSubcategoriesByCategory) 
+
+
+
 
 //listar todas las categorias
-router.get('/', getSubcategories)
+router.get('/', getSubcategories) 
 
 //subcategoria por id
-router.get('/id', validateObjectId('id'), getSubcategoryById)
+router.get('/:id', validateObjectId('id'), getSubcategoryById) 
 
 //crear subcategoria
-router.post('/', verifyAdminOrCoordinador, createSubcategory)
+router.post('/', verifyAdminOrCoordinador, createSubcategory) 
 
 //actualizar subcategoria
-router.put('/:id', validateObjectId('id'), verifyAdminOrCoordinador, updateSubcategory)
+router.put('/:id', validateObjectId('id'), verifyAdminOrCoordinador, updateSubcategory) 
 
-//eliminar categoria
-router.delete('/:id', validateObjectId('id'), verifyAdmin, deleteSubcategory)
+//eliminar subcategoria
+router.delete('/:id', validateObjectId('id'), verifyAdmin, deleteSubcategory) 
 
 //activar o desactivar subcategoria
 router.patch('/:id/toggle-status', validateObjectId('id'), verifyAdminOrCoordinador, toggleSubcategoryStatus)

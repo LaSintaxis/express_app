@@ -6,8 +6,6 @@ const cors = require('cors')
 const { errorHandler, notFound } = require('./middlewares/errorHandler')
 
 const apiRoutes = require('./routes')
-const { verifyAdminOrCoordinador } = require('./middlewares/auth')
-const { timeStamp } = require('console')
 
 const app = express()
 
@@ -27,8 +25,8 @@ app.use(cors({
     credentials: true
 }))
 
-app.use(express.json({ limit: '10m' }))
-app.use(express.urlencoded({ extended: true, limit: '10m' }))
+app.use(express.json({ limit: '10mb' }))
+app.use(express.urlencoded({ extended: true, limit: '10mb' }))
 
 if (process.env.NODE_EMV === 'development') {
     app.use((req, res, next) => {
@@ -38,7 +36,7 @@ if (process.env.NODE_EMV === 'development') {
 }
 
 //configuracion de rutas
-app.use('api', apiRoutes);
+app.use('/api', apiRoutes);
 
 app.get('/', (req, res) => {
     console.log('GET / peticion recibida desde ', req.ip)

@@ -1,10 +1,10 @@
 const jwt = require('jsonwebtoken')
 
-const generateToken = (userId) => {
+const generateToken = (userId, role) => {
     return jwt.sign(
-        { userId },
+        { userId, role },
         process.env.JWT_SECRET,
-        { expiresIn: process.env.JWT_SECRET || '7d' }
+        { expiresIn: process.env.JWT_EXPIRE || '7d' }
     )
 }
 
@@ -12,7 +12,7 @@ const generateRefreshToken = (userId) => {
     return jwt.sign(
         { userId, type: 'refresh'},
         process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET,
-        { expiresIn: process.env.JWT_REFRESH_SECRET || '30d'}
+        { expiresIn: process.env.JWT_REFRESH_EXPIRE || '30d'}
     )
 }
 

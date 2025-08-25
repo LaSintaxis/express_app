@@ -1,5 +1,5 @@
 // Script para crear datos iniciales en la base de datos
-require('dotenv').config({path: '../.env'});
+require('dotenv').config();
 const mongoose = require('mongoose');
 const { User, Category, Subcategory, Product } = require('../src/models');
 

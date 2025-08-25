@@ -1,0 +1,1306 @@
+{
+	"info": {
+		"_postman_id": "8d5ef3cc-b9ce-47a0-8e5e-b83b3a70cbb2",
+		"name": "gestion_productos",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "45102944",
+		"_collection_link": "https://natalia-5212252.postman.co/workspace/Natalia's-Workspace~cf231795-7577-454b-8002-c0a858828a6d/collection/45102944-8d5ef3cc-b9ce-47a0-8e5e-b83b3a70cbb2?action=share&source=collection_link&creator=45102944"
+	},
+	"item": [
+		{
+			"name": "auth",
+			"item": [
+				{
+					"name": "login admin",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"try {\r",
+									"    const body = pm.response.json();\r",
+									"\r",
+									"    if (body.data && body.data.token) {\r",
+									"        pm.collectionVariables.set(\"token_admin\", body.data.token);\r",
+									"        console.log(\"Token guardado:\", body.data.token);\r",
+									"    } else {\r",
+									"        console.log(\"No se encontró el token en la respuesta\");\r",
+									"    }\r",
+									"} catch (err) {\r",
+									"    console.log(\"❌ Error al parsear JSON:\", err);\r",
+									"}\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\": \"admin\",\r\n    \"password\": \"admin123\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5000/api/auth/login",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"api",
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "login coordi",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"try {\r",
+									"    const body = pm.response.json();\r",
+									"\r",
+									"    if (body.data && body.data.token) {\r",
+									"        pm.collectionVariables.set(\"token_coordi\", body.data.token);\r",
+									"        console.log(\"Token guardado:\", body.data.token);\r",
+									"    } else {\r",
+									"        console.log(\"No se encontró el token en la respuesta\");\r",
+									"    }\r",
+									"} catch (err) {\r",
+									"    console.log(\"❌ Error al parsear JSON:\", err);\r",
+									"}\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\": \"coordinador\",\r\n    \"password\": \"coord123\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url_base}}auth/login",
+							"host": [
+								"{{url_base}}auth"
+							],
+							"path": [
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get me",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token_admin}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url_base}}auth/me",
+							"host": [
+								"{{url_base}}auth"
+							],
+							"path": [
+								"me"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "change password",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token_admin}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"currentPassword\": \"admin123\",\r\n    \"newPassword\": \"admin1234\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url_base}}auth/change-password",
+							"host": [
+								"{{url_base}}auth"
+							],
+							"path": [
+								"change-password"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "logout",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token_admin}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\": \"admin\",\r\n    \"password\": \"admin123\"\r\n}"
+						},
+						"url": {
+							"raw": "http://localhost:5000/api/auth/logout",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"api",
+								"auth",
+								"logout"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "verifyToken",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token_admin}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url_base}}auth/verify",
+							"host": [
+								"{{url_base}}auth"
+							],
+							"path": [
+								"verify"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "categories",
+			"item": [
+				{
+					"name": "get categories",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token_admin}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\": \"admin\",\r\n    \"password\": \"admin123\"\r\n}"
+						},
+						"url": {
+							"raw": "{{url_base}}categories",
+							"host": [
+								"{{url_base}}categories"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get category by id",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token_coordi}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url_base}}categories/68a7de15be8be47347218e5e",
+							"host": [
+								"{{url_base}}categories"
+							],
+							"path": [
+								"68a7de15be8be47347218e5e"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get active categories",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token_admin}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\": \"admin\",\r\n    \"password\": \"admin123\"\r\n}"
+						},
+						"url": {
+							"raw": "{{url_base}}categories/active",
+							"host": [
+								"{{url_base}}categories"
+							],
+							"path": [
+								"active"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "update category",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token_admin}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"Ropita\"\r\n}"
+						},
+						"url": {
+							"raw": "{{url_base}}categories/68a7de15be8be47347218e5e",
+							"host": [
+								"{{url_base}}categories"
+							],
+							"path": [
+								"68a7de15be8be47347218e5e"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "create category",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token_coordi}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"Construccion\",\r\n    \"description\": \"todo para la ingenieria civil\",\r\n    \"icon\": \"🚧\",\r\n    \"sortOrder\": \"4\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url_base}}categories",
+							"host": [
+								"{{url_base}}categories"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get categories stats",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token_admin}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\": \"admin\",\r\n    \"password\": \"admin123\"\r\n}"
+						},
+						"url": {
+							"raw": "{{url_base}}categories/stats",
+							"host": [
+								"{{url_base}}categories"
+							],
+							"path": [
+								"stats"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "reorder categories",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token_coordi}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"categoryIds\": [\"68a7de15be8be47347218e5d\", \"68a7de15be8be47347218e5e\", \"68a7de15be8be47347218e5f\"]\r\n}\r\n"
+						},
+						"url": {
+							"raw": "{{url_base}}categories/reorder",
+							"host": [
+								"{{url_base}}categories"
+							],
+							"path": [
+								"reorder"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "delete category",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token_admin}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{url_base}}categories/",
+							"host": [
+								"{{url_base}}categories"
+							],
+							"path": [
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "category toggle status",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token_admin}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"Ropita\"\r\n}"
+						},
+						"url": {
+							"raw": "{{url_base}}categories/68a7de15be8be47347218e5e/toggle-status",
+							"host": [
+								"{{url_base}}categories"
+							],
+							"path": [
+								"68a7de15be8be47347218e5e",
+								"toggle-status"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "subcategories",
+			"item": [
+				{
+					"name": "get subcategories",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token_admin}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url_base}}subcategories",
+							"host": [
+								"{{url_base}}subcategories"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get subcategories by category",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token_coordi}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url_base}}subcategories/category/68a7de15be8be47347218e5f",
+							"host": [
+								"{{url_base}}subcategories"
+							],
+							"path": [
+								"category",
+								"68a7de15be8be47347218e5f"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get subcategories stats",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token_admin}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url_base}}subcategories/stats",
+							"host": [
+								"{{url_base}}subcategories"
+							],
+							"path": [
+								"stats"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "reorder subcategories",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token_coordi}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"subcategoryIds\": [\"68a7de15be8be47347218e64\", \"68a7de15be8be47347218e65\", \"68a7de15be8be47347218e66\", \"68a7de15be8be47347218e67\", \"68a7de15be8be47347218e68\"]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url_base}}subcategories/reorder",
+							"host": [
+								"{{url_base}}subcategories"
+							],
+							"path": [
+								"reorder"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get active subcategories",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token_coordi}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url_base}}subcategories/active",
+							"host": [
+								"{{url_base}}subcategories"
+							],
+							"path": [
+								"active"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get subcategory by id",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token_coordi}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url_base}}subcategories/68a7de15be8be47347218e65",
+							"host": [
+								"{{url_base}}subcategories"
+							],
+							"path": [
+								"68a7de15be8be47347218e65"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "create subcategoy",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token_coordi}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"Jardineria\",\r\n    \"description\": \"todo para el jardin\",\r\n    \"categoryId\": \"68a7de15be8be47347218e5f\",\r\n    \"icon\": \"👩‍🌾\",\r\n    \"color\": \"#fefefe\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url_base}}subcategories",
+							"host": [
+								"{{url_base}}subcategories"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "update subcategory",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token_coordi}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"Calzado\",\r\n    \"color\": \"#dddddd\"\r\n}"
+						},
+						"url": {
+							"raw": "{{url_base}}subcategories/68a7de15be8be47347218e67",
+							"host": [
+								"{{url_base}}subcategories"
+							],
+							"path": [
+								"68a7de15be8be47347218e67"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "delete subcategory",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token_admin}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"Jardineria\",\r\n    \"description\": \"todo para el jardin\",\r\n    \"categoryId\": \"68a7de15be8be47347218e5f\",\r\n    \"icon\": \"👩‍🌾\",\r\n    \"color\": \"#fefefe\"\r\n}"
+						},
+						"url": {
+							"raw": "{{url_base}}subcategories/",
+							"host": [
+								"{{url_base}}subcategories"
+							],
+							"path": [
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "toggle subcategory status",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token_admin}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"url": {
+							"raw": "{{url_base}}subcategories/68a7de15be8be47347218e68/toggle-status",
+							"host": [
+								"{{url_base}}subcategories"
+							],
+							"path": [
+								"68a7de15be8be47347218e68",
+								"toggle-status"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "products",
+			"item": [
+				{
+					"name": "get active products",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token_admin}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{url_base}}products/active",
+							"host": [
+								"{{url_base}}products"
+							],
+							"path": [
+								"active"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get feactured products",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token_admin}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{url_base}}products/feactured",
+							"host": [
+								"{{url_base}}products"
+							],
+							"path": [
+								"feactured"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get products by category",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token_admin}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url_base}}products/category/68abc7601990b7157ac9c76c",
+							"host": [
+								"{{url_base}}products"
+							],
+							"path": [
+								"category",
+								"68abc7601990b7157ac9c76c"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get products by subcategory",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token_admin}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url_base}}products/subcategory/68abc7601990b7157ac9c777",
+							"host": [
+								"{{url_base}}products"
+							],
+							"path": [
+								"subcategory",
+								"68abc7601990b7157ac9c777"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get products stats",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token_admin}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url_base}}products/stats",
+							"host": [
+								"{{url_base}}products"
+							],
+							"path": [
+								"stats"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get product by sku",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token_admin}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url_base}}products/sku/CAM001BAS",
+							"host": [
+								"{{url_base}}products"
+							],
+							"path": [
+								"sku",
+								"CAM001BAS"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get product by id",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token_admin}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url_base}}products/68abc7601990b7157ac9c78a",
+							"host": [
+								"{{url_base}}products"
+							],
+							"path": [
+								"68abc7601990b7157ac9c78a"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "create product",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token_admin}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"name\": \"Laptop Gamer X15\",\r\n  \"description\": \"Laptop de alto rendimiento con procesador Intel i7, 16GB RAM y tarjeta gráfica RTX 3060.\",\r\n  \"shortDescription\": \"Laptop gamer con RTX 3060\",\r\n  \"sku\": \"LAPX15-001\",\r\n  \"category\": \"68abc7601990b7157ac9c76b\", \r\n  \"subcategory\": \"68abc7601990b7157ac9c774\",\r\n  \"price\": 5200000,\r\n  \"comparePrice\": 5800000,\r\n  \"cost\": 4000000,\r\n  \"stock\": 25,\r\n  \"dimensions\": {\r\n    \"width\": 35.5,\r\n    \"height\": 2.3,\r\n    \"depth\": 24.5,\r\n    \"weight\": 2.1\r\n  },\r\n  \"seoTitle\": \"Laptop Gamer X15 - Potencia y Rendimiento\",\r\n  \"seoDescription\": \"Compra la Laptop Gamer X15 con procesador Intel i7 y RTX 3060 al mejor precio.\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url_base}}products",
+							"host": [
+								"{{url_base}}products"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "update product",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token_admin}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\" : \"iPhone 16\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url_base}}products/68abc7601990b7157ac9c78a",
+							"host": [
+								"{{url_base}}products"
+							],
+							"path": [
+								"68abc7601990b7157ac9c78a"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "delete product",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token_admin}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{url_base}}products/",
+							"host": [
+								"{{url_base}}products"
+							],
+							"path": [
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "product toggle status",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token_admin}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"url": {
+							"raw": "{{url_base}}products/68abc7601990b7157ac9c78a/toggle-status",
+							"host": [
+								"{{url_base}}products"
+							],
+							"path": [
+								"68abc7601990b7157ac9c78a",
+								"toggle-status"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "update product stock",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token_admin}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"quantity\": 5,\r\n  \"operation\": \"subtract\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url_base}}products/68abc7601990b7157ac9c78a/stock",
+							"host": [
+								"{{url_base}}products"
+							],
+							"path": [
+								"68abc7601990b7157ac9c78a",
+								"stock"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "token_admin",
+			"value": ""
+		},
+		{
+			"key": "url_base",
+			"value": "http://localhost:5000/api/"
+		},
+		{
+			"key": "token_coordi",
+			"value": ""
+		}
+	]
+}

@@ -25,7 +25,7 @@ router.put('/change-password', authMiddleware, changePassword)
 //ruta pata cessar sesion
 router.post('/logout', authMiddleware, logout)
 
-//ruta para verifivar token provada
+//ruta para verificar token 
 router.get('/verify', authMiddleware, verifyToken)
 
 module.exports = router;

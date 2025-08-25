@@ -101,7 +101,7 @@ userSchema.methods.comparePassword = async function(candidatePassword){
 
 // Sobre escribe el metodo toJSON para que nunca envie la contraseña por el frontend
 userSchema.methods.toJSON = function() {
-    const userObject = this.toJSON();
+    const userObject = this.toObject();
     delete userObject.password;
     return userObject;
 }

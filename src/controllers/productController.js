@@ -79,7 +79,7 @@ const getActiveProducts = asyncHandler(async (req, res) => {
     })
 })
 
-//obtener subcategorias por categoria
+//obtener productos por categoria
 const getProductsByCategory = asyncHandler(async (req, res) => {
     const { categoryId } = req.params;
     //verificar si la categoria existe y esta activa
@@ -89,6 +89,7 @@ const getProductsByCategory = asyncHandler(async (req, res) => {
         data: products
     })
 })
+
 const getProductsBySubcategory = asyncHandler(async (req, res) => {
     const { subcategoryId } = req.params;
     //verificar si la categoria existe y esta activa
@@ -99,6 +100,7 @@ const getProductsBySubcategory = asyncHandler(async (req, res) => {
     })
 
 })
+
 const getFeacturedProducts = asyncHandler(async (req, res) => {
     const products = await Product.findFeactured();
     res.status(200).json({
@@ -129,7 +131,7 @@ const getProductById = asyncHandler(async (req, res) => {
 
 //obtener producto por codigo
 const getProductBySku = asyncHandler(async (req, res) => {
-    const product = await Product.findByOne({ sku: req.params.sku.toUpperCase() })
+    const product = await Product.findOne({ sku: req.params.sku.toUpperCase() })
         .populate('category', 'name slug')
         .populate('subcategory', 'name slug')
     if (!product) {
@@ -159,39 +161,44 @@ const createProduct = asyncHandler(async (req, res) => {
         stock,
         dimensions,
         images,
+        tags,
         isActive,
         isFeactured,
         isDigital,
         sortOrder,
         seoTitle,
-        seoDescription,
-        createdBy
-    } = req.body
+        seoDescription
+    } = req.body;
 
-    const parentCategory = await Category.findById(category)
-    if (!parentCategory) {
+    const parentCategory = await Category.findById(category);
+    if (!parentCategory || !parentCategory.isActive) {
         return res.status(400).json({
             success: false,
-            message: 'La categoria especificada no existe'
-        })
+            message: 'La categoría especificada no existe o no está activa'
+        });
     }
 
-    const parentSubcategory = await Subcategory.findById(subcategory)
+    const parentSubcategory = await Subcategory.findById(subcategory);
     if (!parentSubcategory || !parentSubcategory.isActive) {
         return res.status(400).json({
             success: false,
-            message: 'La subcategoria especificada no existe o no esta activa'
-        })
+            message: 'La subcategoría especificada no existe o no está activa'
+        });
     }
 
-    if (!parentSubcategory.category.toString() !== category) {
+    if (parentSubcategory.category.toString() !== category) {
         return res.status(400).json({
             success: false,
-            message: 'La subcategoria no pertenece a la categoría especificada'
-        })
+            message: 'La subcategoría no pertenece a la categoría especificada'
+        });
     }
 
-    //crear producto
+    // Normalizar stock
+    const normalizedStock = typeof stock === 'object'
+        ? stock
+        : { quantity: stock || 0, minStock: 0, trackStock: true };
+
+    // Crear producto
     const product = await Product.create({
         name,
         description,
@@ -202,7 +209,7 @@ const createProduct = asyncHandler(async (req, res) => {
         price,
         comparePrice,
         cost,
-        stock: stock || { quantity: 0, minStock: 0, trackStock: true },
+        stock: normalizedStock,
         dimensions,
         images,
         tags: tags || [],
@@ -213,19 +220,20 @@ const createProduct = asyncHandler(async (req, res) => {
         seoTitle,
         seoDescription,
         createdBy: req.user._id
-    })
+    });
 
     await product.populate([
         { path: 'category', select: 'name slug' },
         { path: 'subcategory', select: 'name slug' }
-    ])
+    ]);
 
     res.status(201).json({
         success: true,
-        message: 'producto creado exitosamente',
+        message: 'Producto creado exitosamente',
         data: product
-    })
-})
+    });
+});
+
 
 //actualizar producto
 const updateProduct = asyncHandler(async (req, res) => {
@@ -233,9 +241,10 @@ const updateProduct = asyncHandler(async (req, res) => {
     if (!product) {
         return res.status(404).json({
             success: false,
-            message: 'producto no encontrado'
-        })
+            message: 'Producto no encontrado'
+        });
     }
+
     const {
         name,
         description,
@@ -249,56 +258,58 @@ const updateProduct = asyncHandler(async (req, res) => {
         stock,
         dimensions,
         images,
+        tags,
         isActive,
         isFeactured,
         isDigital,
         sortOrder,
         seoTitle,
-        seoDescription,
-        createdBy
-    } = req.body
+        seoDescription
+    } = req.body;
 
+    // Validar SKU duplicado si cambia
     if (sku && sku.toUpperCase() !== product.sku) {
-        const existingSku = await Product.findOne({ sku: sku.toUpperCase() })
+        const existingSku = await Product.findOne({ sku: sku.toUpperCase() });
         if (existingSku) {
             return res.status(400).json({
                 success: false,
-                message: 'El sku ya existe'
-            })
+                message: 'El SKU ya existe'
+            });
         }
     }
 
-    if (category || subcategory) {
-        const targetCategory = category || product.category;
-        const targetSubcategory = subcategory || product.subcategory;
-        //si cambia la categoria validar que exista y este activa
-        const parentCategory = await Category.findById(targetCategory)
-        if (!parentCategory || !parentCategory.isActive) {
-            return res.status(400).json({
-                success: false,
-                message: 'la categoria especificada no existe o no esta activa'
-            })
-        }
-        //si cambia la subcategoria validar que exista y este activa
-        const parentSubcategory = await Subcategory.findById(targetSubcategory)
-        if (!parentSubcategory || !parentSubcategory.isActive) {
-            return res.status(400).json({
-                success: false,
-                message: 'la subcategoria especificada no existe o no esta activa'
-            })
-        }
+    // Definir categoría y subcategoría de destino
+    const targetCategory = category || product.category;
+    const targetSubcategory = subcategory || product.subcategory;
+
+    // Validar categoría
+    const parentCategory = await Category.findById(targetCategory);
+    if (!parentCategory || !parentCategory.isActive) {
+        return res.status(400).json({
+            success: false,
+            message: 'La categoría especificada no existe o no está activa'
+        });
     }
 
-    //verificar duplicados
+    // Validar subcategoría
+    const parentSubcategory = await Subcategory.findById(targetSubcategory);
+    if (!parentSubcategory || !parentSubcategory.isActive) {
+        return res.status(400).json({
+            success: false,
+            message: 'La subcategoría especificada no existe o no está activa'
+        });
+    }
+
+    // Verificar relación categoría-subcategoría
     if (parentSubcategory.category.toString() !== targetCategory.toString()) {
         return res.status(400).json({
             success: false,
-            message: 'la subcategoria no pertenece a la categoria especificada'
-        })
+            message: 'La subcategoría no pertenece a la categoría especificada'
+        });
     }
 
-    //Actualizar Producto
-    if (name) product.name = name;
+    // Actualizar campos
+    if (name !== undefined) product.name = name;
     if (description !== undefined) product.description = description;
     if (shortDescription !== undefined) product.shortDescription = shortDescription;
     if (sku) product.sku = sku.toUpperCase();
@@ -315,20 +326,24 @@ const updateProduct = asyncHandler(async (req, res) => {
     if (isFeactured !== undefined) product.isFeactured = isFeactured;
     if (isDigital !== undefined) product.isDigital = isDigital;
     if (sortOrder !== undefined) product.sortOrder = sortOrder;
+    if (seoTitle !== undefined) product.seoTitle = seoTitle;
     if (seoDescription !== undefined) product.seoDescription = seoDescription;
 
     product.updatedBy = req.user._id;
+
     await product.save();
     await product.populate([
         { path: 'category', select: 'name slug' },
         { path: 'subcategory', select: 'name slug' },
-    ])
+    ]);
+
     res.status(200).json({
         success: true,
-        message: 'producto actualizado correctamente',
+        message: 'Producto actualizado correctamente',
         data: product
-    })
-})
+    });
+});
+
 
 //eliminar un producto
 const deleteProduct = asyncHandler(async (req, res) => {
@@ -339,7 +354,7 @@ const deleteProduct = asyncHandler(async (req, res) => {
             message: 'Producto no encontrado'
         })
     }
-    await Product.findOneAndDelete(req.params);
+    await Product.findByIdAndDelete(req.params.id);
     res.status(200).json({
         success: true,
         message: 'Producto eliminado correctamente'
@@ -396,7 +411,7 @@ const updateProductStock = asyncHandler(async (req, res) => {
             product.stock.quantity = quantity;
             break;
         case 'add':
-            product.stock.quantity = quantity;
+            product.stock.quantity += quantity;
             break;
         case 'subtract':
             product.stock.quantity = Math.max(0, product.stock.quantity - quantity);

@@ -62,7 +62,7 @@ const getSubcategoriesByCategory = asyncHandler(async (req, res) => {
     })
 })
 
-const getActiveSubcategories = asyncHandler( async (req, res) => {
+const getActiveSubcategories = asyncHandler(async (req, res) => {
     const subcategories = await Subcategory.findActive();
     res.status(200).json({
         success: true,
@@ -112,7 +112,7 @@ const createSubcategory = asyncHandler(async (req, res) => {
     } = req.body
 
     const targetCategoryId = categoryId || category;
-    if (!name || targetCategoryId) {
+    if (!name || !targetCategoryId) {
         return res.status(400).json({
             success: false,
             message: 'el nombre y la categoria son requeridos'
@@ -186,7 +186,7 @@ const updateSubcategory = asyncHandler(async (req, res) => {
         const parentCategory = await Category.findById(targetCategoryId)
         if (!parentCategory) {
             return res.status(400).json({
-                success:false,
+                success: false,
                 message: 'la categoria especificada no existe'
             })
         }
@@ -236,7 +236,7 @@ const deleteSubcategory = asyncHandler(async (req, res) => {
         })
     }
     //verificar si se puede eliminar
-    const canDelete = await subcategory.canDelete();
+    const canDelete = await subcategory.canBeDeleted();
     if (!canDelete) {
         return res.status(400).json({
             success: false,
@@ -313,10 +313,11 @@ const getSubcategoryStats = asyncHandler(async (req, res) => {
             }
         }
     ])
+
     const subcategoriesWithSubcounts = await Subcategory.aggregate([
         {
             $lookup: {
-                from: '$products',
+                from: 'products',
                 localField: '_id',
                 foreignField: 'subcategory',
                 as: 'products'
@@ -324,22 +325,23 @@ const getSubcategoryStats = asyncHandler(async (req, res) => {
         },
         {
             $lookup: {
-                from: '$categories',
-                localField: '_id',
-                foreignField: 'category',
+                from: 'categories',
+                localField: 'category',   // 🔥 corregido
+                foreignField: '_id',
                 as: 'categoryInfo'
             }
         },
         {
             $project: {
                 name: 1,
-                categoryName: { $arrayElemAt: ['$categoryInfo.name', 0]},
-                productsCount: {$size: '$products'}
+                categoryName: { $arrayElemAt: ['$categoryInfo.name', 0] },
+                productsCount: { $size: '$products' }
             }
         },
-        {sort: {productsCount: -1}},
-        {limit: 5}
+        { $sort: { productsCount: -1 } },
+        { $limit: 5 }
     ])
+
     res.status(200).json({
         success: true,
         data: {
@@ -347,10 +349,11 @@ const getSubcategoryStats = asyncHandler(async (req, res) => {
                 totalSubcategories: 0,
                 activateSubcategories: 0
             },
-            topSubategories: subcategoriesWithSubcounts
+            topSubcategories: subcategoriesWithSubcounts // 🔥 corregido
         }
     })
 })
+
 
 module.exports = {
     getSubcategories,

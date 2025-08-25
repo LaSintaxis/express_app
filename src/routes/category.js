@@ -24,7 +24,7 @@ const {
 const { validateObjectId } = require('../middlewares/errorHandler')
 
 //categorias activas para frontend publico
-router.get('/active', getActiveCategories)
+router.get('/active',verifyToken, getActiveCategories)
 
 //aplicar verificacion de token en todas las rutas
 router.use(verifyToken)
@@ -33,13 +33,13 @@ router.use(verifyToken)
 router.get('/stats', verifyAdmin, getCategoryStats)
 
 //reordenar categorias
-router.get('/reorder', verifyAdminOrCoordinador, reorderCategories)
+router.put('/reorder', verifyAdminOrCoordinador, reorderCategories)
 
 //listar todas las categorias
 router.get('/', getCategories)
 
-//categoira por id
-router.get('/id', validateObjectId('id'), getCategoryById)
+//categoria por id
+router.get('/:id', validateObjectId('id'), verifyAdminOrCoordinador, getCategoryById)
 
 //crear categoria
 router.post('/', verifyAdminOrCoordinador, createCategory)

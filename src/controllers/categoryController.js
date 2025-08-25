@@ -19,7 +19,7 @@ const getCategories = asyncHandler(async (req, res) => {
     }
     //consulta a la base de datos
     let query = Category.find(filter)
-        .populate('createdBy', 'username', 'firstName', 'lastName')
+        .populate('createdBy', 'username firstName lastName')
         .populate('subcategoriesCount')
         .populate('productsCount')
         .sort({ sortOrder: 1, name: 1 })
@@ -163,7 +163,7 @@ const deleteCategory = asyncHandler(async (req, res) => {
         })
     }
     //verificar si se puede eliminar
-    const canDelete = await category.canDelete();
+    const canDelete = await category.canBeDeleted();
     if (!canDelete) {
         return res.status(400).json({
             success: false,
@@ -248,7 +248,7 @@ const getCategoryStats = asyncHandler(async (req, res) => {
     const categoriesWithSubcounts = await Category.aggregate([
         {
             $lookup: {
-                from: '$subcategories',
+                from: 'subcategories',
                 localField: '_id',
                 foreignField: 'category',
                 as: 'subcategories'
@@ -257,11 +257,11 @@ const getCategoryStats = asyncHandler(async (req, res) => {
         {
             $project: {
                 name: 1,
-                subcategoriesCount: {$size: '$subcategories'}
+                subcategoriesCount: { $size: '$subcategories' }
             }
         },
-        {sort: {subcategoriesCount: -1}},
-        {limit:10}
+        { $sort: { subcategoriesCount: -1 } },
+        { $limit: 10 }
     ])
     res.status(200).json({
         success: true,

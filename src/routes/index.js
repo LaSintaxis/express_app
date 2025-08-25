@@ -10,7 +10,6 @@ const userRoutes = require('./user')
 const categoryRoutes = require('./category')
 const subcategoryRoutes = require('./subcategory')
 const productRoutes = require('./product')
-const { timeStamp } = require('console')
 
 //cada modulo tiene su propio espacio de nombre en la url
 router.use('/auth', authRoutes)

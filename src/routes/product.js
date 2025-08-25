@@ -27,6 +27,9 @@ const {
 //Middleware de autenticacion
 const { validateObjectId } = require('../middlewares/errorHandler')
 
+//aplicar verificacion de token en todas las rutas
+router.use(verifyToken)
+
 router.get('/active', getActiveProducts)
 
 //productos destacados
@@ -38,8 +41,6 @@ router.get('/category/:categoryId', validateObjectId('categoryId'), getProductsB
 //productos por subcategorias activas para frontend publico
 router.get('/subcategory/:subcategoryId', validateObjectId('subcategoryId'), getProductsBySubcategory)
 
-//aplicar verificacion de token en todas las rutas
-router.use(verifyToken)
 
 //estadisticas de los productos
 router.get('/stats', verifyAdmin, getProductStats)
@@ -51,7 +52,7 @@ router.get('/sku/:sku', getProductBySku)
 router.get('/', getProducts)
 
 //productos por id
-router.get('/id', validateObjectId('id'), getProductById)
+router.get('/:id', validateObjectId('id'), getProductById)
 
 //crear producto
 router.post('/', verifyAdminOrCoordinador, createProduct)
@@ -66,6 +67,6 @@ router.delete('/:id', validateObjectId('id'), verifyAdmin, deleteProduct)
 router.patch('/:id/toggle-status', validateObjectId('id'), verifyAdminOrCoordinador, toggleProductStatus)
 
 //actualizar producto por stock
-router.patch('/:id/stock', validateObjectId('id'), verifyAdminOrCoordinador, toggleProductStatus)
+router.patch('/:id/stock', validateObjectId('id'), verifyAdminOrCoordinador, updateProductStock)
 
 module.exports = router;

@@ -72,14 +72,22 @@ categorySchema.pre('findOneAndUpdate', function(next){
     next();
 })
 
-categorySchema.virtual('productCount', {
-    ref:'Product',
+categorySchema.virtual('subcategoriesCount', {
+    ref: 'Subcategory',
     localField: '_id',
     foreignField: 'category',
-    count:true
-})
+    count: true
+});
 
-categorySchema.static.findActive = function (){
+categorySchema.virtual('productsCount', {
+    ref: 'Product',
+    localField: '_id',
+    foreignField: 'category',
+    count: true
+});
+
+
+categorySchema.statics.findActive = function (){
     return this.find({ isActive:true }).sort({ sortOrder: 1, name: 1 })
 }
 
@@ -97,4 +105,4 @@ categorySchema.index({isActive:1})
 categorySchema.index({sortOrder:1})
 categorySchema.index({createdBy:1})
 
-module.exports = mongoose.model('category', categorySchema)
+module.exports = mongoose.model('Category', categorySchema)

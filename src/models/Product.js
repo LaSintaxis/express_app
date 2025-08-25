@@ -98,16 +98,16 @@ const productSchema = new mongoose.Schema({
             type: Number,
             default: 0,
             min: [0, 'La cantidad de stock no puede ser negativa']
+        },
+        trackStock: {
+            type: Boolean,
+            default: true
         }
     },
     minStock: {
         type: Number,
         default: 0,
         min: [0, 'El stock minimo no puede ser negativo']
-    },
-    trackStock: {
-        type: Boolean,
-        default: true
     },
     dimensions: {
         weigth: {
@@ -125,61 +125,61 @@ const productSchema = new mongoose.Schema({
         width: {
             type: Number,
             min: [0, 'El ancho no puede ser negativo']
-        },
-        images: [{
-            url: {
-                type: String,
-                required: true,
-                trim: true
-            },
-            alt: {
-                type: String,
-                trim: true,
-                maxlength: [200, 'El texto alternativo no puede exceder los 200 caracteres']
-            },
-            isPrimary: {
-                type: Boolean,
-                default: false
-            }
-        }],
-        tags: [{
-            type: String,
-            trim: true,
-            lowercase: true,
-            maxlength: [50, 'Cada tag no puede exceder 50 caracteres']
-        }],
-        isActive: {
-            type: Boolean,
-            default: true
-        },
-        isFeactured: {
-            type: Boolean,
-            default: false
-        },
-        isDigital: {
-            type: Boolean,
-            default: false
-        },
-        sortOrder: {
-            type: Number,
-            trim: true,
-            maxlength: [70, 'El titulo no puede exceder los 70 caracteres']
-        },
-        seoDescription: {
-            type: String,
-            trim: true,
-            maxlength: [160, 'La descripcion no puede superar los 160 caracteres']
-        },
-        createdBy: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'User',
-            required: true
-        },
-        updatedBy: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'User'
         }
+    },
 
+    images: [{
+        url: {
+            type: String,
+            required: true,
+            trim: true
+        },
+        alt: {
+            type: String,
+            trim: true,
+            maxlength: [200, 'El texto alternativo no puede exceder los 200 caracteres']
+        },
+        isPrimary: {
+            type: Boolean,
+            default: false
+        }
+    }],
+    tags: [{
+        type: String,
+        trim: true,
+        lowercase: true,
+        maxlength: [50, 'Cada tag no puede exceder 50 caracteres']
+    }],
+    isActive: {
+        type: Boolean,
+        default: true
+    },
+    isFeactured: {
+        type: Boolean,
+        default: false
+    },
+    isDigital: {
+        type: Boolean,
+        default: false
+    },
+    sortOrder: {
+        type: Number,
+        trim: true,
+        maxlength: [70, 'El titulo no puede exceder los 70 caracteres']
+    },
+    seoDescription: {
+        type: String,
+        trim: true,
+        maxlength: [160, 'La descripcion no puede superar los 160 caracteres']
+    },
+    createdBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
+    },
+    updatedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
     }
 }, {
     timestamps: true
@@ -266,7 +266,7 @@ productSchema.statics.findBySubcategory = function (subcategoryId) {
         .sort({ sortOrder: 1, name: 1 })
 }
 
-productSchema.statics.findFeature = function () {
+productSchema.statics.findFeactured = function () {
     return this.find({
         isFeactured: true,
         isActive: true
@@ -295,15 +295,15 @@ productSchema.methods.updateStock = function (quantity) {
     return this.save()
 };
 
-productSchema.index({ category:1 })
-productSchema.index({ subcategory:1 })
-productSchema.index({ isActive:1 })
-productSchema.index({ isFeactured:1 })
-productSchema.index({ price:1 })
-productSchema.index({ 'stock.quantity':1 })
-productSchema.index({ sortOrder:1 })
-productSchema.index({ createdBy:1 })
-productSchema.index({ tags:1 })
+productSchema.index({ category: 1 })
+productSchema.index({ subcategory: 1 })
+productSchema.index({ isActive: 1 })
+productSchema.index({ isFeactured: 1 })
+productSchema.index({ price: 1 })
+productSchema.index({ 'stock.quantity': 1 })
+productSchema.index({ sortOrder: 1 })
+productSchema.index({ createdBy: 1 })
+productSchema.index({ tags: 1 })
 
 productSchema.index({
     name: 'text',

@@ -1,4 +1,5 @@
 const mongoose = require('mongoose')
+require('./Category');
 
 const subcategorySchema = new mongoose.Schema({
     name: {
@@ -62,24 +63,27 @@ const subcategorySchema = new mongoose.Schema({
     timestamps: true
 })
 
-subcategorySchema.pre('save', function(next){
-    if(this.isModified('name')) {
-        this.slug
-    } ;
-    
+subcategorySchema.pre('save', function (next) {
+  if (this.isModified('name')) {
+    this.slug = this.name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)+/g, '');
+  }
+  next();
 });
 
-subcategorySchema.pre('findOneAndUpdate', function(next){
-    const update = this.getUpdate();
-
-    if(update.name){
-        update.slug = update.name
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/(^-|-$)+/g, '');
-    }
-    next();
-})
+subcategorySchema.pre('findOneAndUpdate', function (next) {
+  const update = this.getUpdate() || {};
+  if (update.name) {
+    update.slug = update.name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)+/g, '');
+    this.setUpdate(update);
+  }
+  next();
+});
 
 subcategorySchema.pre('save', async function(next){
     if(this.isModified('category')){
@@ -97,14 +101,14 @@ subcategorySchema.pre('save', async function(next){
     next();
 })
 
-subcategorySchema.virtual('productCount', {
+subcategorySchema.virtual('productsCount', {
     ref:'Product',
     localField: '_id',
-    foreignField: 'category',
+    foreignField: 'subcategory',
     count:true
 })
 
-subcategorySchema.static.findByCategory = function(categoryId){
+subcategorySchema.statics.findByIdCategory = function(categoryId){
     return this.find({
         category: categoryId,
         isActive: true
@@ -113,7 +117,7 @@ subcategorySchema.static.findByCategory = function(categoryId){
     .sort({ sortOrder: 1, name: 1 });
 };
 
-subcategorySchema.static.findActive = function(){
+subcategorySchema.statics.findActive = function(){
     return this.find({ isActive: true })
     .populate('category', 'name slug')
     .sort({ sortOrder: 1, name: 1 });
@@ -121,14 +125,13 @@ subcategorySchema.static.findActive = function(){
 
 subcategorySchema.methods.canBeDeleted = async function () {
     const Product = mongoose.model('Product');
-    const productCount = await Product.countDocuments({ Subcategory: this._id});
-
+    const productCount = await Product.countDocuments({ subcategory: this._id});
     return productCount === 0;
 }
 
 subcategorySchema.methods.getFullPath = async function () {
     await this.populate('category', 'name');
-    return `${this.Category.name} > ${this.name}`;
+    return `${this.category.name} > ${this.name}`;
 }
 
 subcategorySchema.index({category: 1});

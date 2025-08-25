@@ -51,7 +51,7 @@ const errorHandler = (err, req, res, next) => {
 
 //middleware para rutas encontradas
 const notFound = (req, res, next) => {
-    const error = new Error(`Ruta no encontrada - ${req.originalUrl}`)
+    const error = new Error(`[middlewares/errorHandler] Ruta no encontrada - ${req.originalUrl}`)
     res.status(400)
     next(error);
 }

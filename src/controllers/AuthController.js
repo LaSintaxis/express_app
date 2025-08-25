@@ -58,8 +58,9 @@ const login = asyncHandler(async (req, res) => {
         await user.save()
         //generar token JWT
         const token = generateToken(user._id);
+        const { password: _, ...userResponse } = user.toObject();
         res.status(200).json({
-            success: false,
+            success: true,
             message: 'login exitoso',
             data: {
                 user: userResponse,
@@ -71,7 +72,7 @@ const login = asyncHandler(async (req, res) => {
         console.log('ERROR en login ', error)
         res.status(500).json({
             success: false,
-            message: 'Error interno del servidor'
+            message: '[controllers/AuthController.js] Error interno del servidor'
         })
     }
 })
