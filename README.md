@@ -8,16 +8,13 @@ PORT=5000
 NODE_ENV=development
 HOST=0.0.0.0
 
-# Base de datos
 MONGO_URI=mongodb://localhost:27017/gestion_productos
 
-# JWT
 JWT_SECRET=mi_secreto_super_seguro
 JWT_EXPIRE=7d
 JWT_REFRESH_SECRET=mi_secreto
 JWT_REFRESH_EXPIRE=30d
 
-# Frontend URL
 FRONTEND_URL=http://localhost:3000
 
 Agregar script en package.json para correr el servidor:
